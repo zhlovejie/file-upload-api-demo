@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Upload API Demo</title>
+    <link rel="stylesheet" href="./index.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">FU</div>
+          <div>
+            <h1>File Upload API Demo</h1>
+            <p class="subtitle">Standalone upload service with chunk transfer and static file URLs.</p>
+          </div>
+        </div>
+        <div class="api-box">
+          <label for="apiBaseUrl">API Base</label>
+          <input id="apiBaseUrl" value="http://localhost:4000" />
+        </div>
+      </header>
+
+      <section class="grid">
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Normal Single Upload</h2>
+          </div>
+          <div class="panel-body">
+            <label class="drop-zone" id="singleDropZone">
+              <input id="singleFileInput" type="file" />
+              <span class="drop-content">
+                <span class="drop-icon">+</span>
+                <span class="drop-title">Select or drop one file</span>
+                <span class="drop-note">Images, videos and documents are supported.</span>
+              </span>
+            </label>
+            <div class="selected-file" id="singleSelectedFile">No file selected.</div>
+            <div class="progress-shell">
+              <div class="progress-bar" id="singleProgressBar"></div>
+            </div>
+            <div class="progress-row">
+              <span id="singleStatusText">Ready</span>
+              <span id="singleProgressText">0%</span>
+            </div>
+            <div class="actions">
+              <button class="button" id="singleUploadButton">Upload File</button>
+              <button class="button secondary" id="singleResetButton">Reset</button>
+            </div>
+            <div class="result" id="singleResult"></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Large File Chunk Upload</h2>
+          </div>
+          <div class="panel-body">
+            <label class="drop-zone" id="chunkDropZone">
+              <input id="chunkFileInput" type="file" />
+              <span class="drop-content">
+                <span class="drop-icon">↥</span>
+                <span class="drop-title">Select or drop a large file</span>
+                <span class="drop-note">Chunks are uploaded in parallel with resume status.</span>
+              </span>
+            </label>
+            <div class="selected-file" id="chunkSelectedFile">No file selected.</div>
+            <div class="progress-shell">
+              <div class="progress-bar" id="chunkProgressBar"></div>
+            </div>
+            <div class="progress-row">
+              <span id="chunkStatusText">Ready</span>
+              <span id="chunkProgressText">0%</span>
+            </div>
+            <div class="actions">
+              <button class="button" id="chunkUploadButton">Upload Chunks</button>
+              <button class="button secondary" id="chunkResumeButton">Resume Last Task</button>
+              <button class="button secondary" id="chunkResetButton">Reset</button>
+            </div>
+            <div class="result" id="chunkResult"></div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="./index.js"></script>
+  </body>
+</html>
