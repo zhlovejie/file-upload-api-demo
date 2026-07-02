@@ -252,7 +252,7 @@ function FileToolbar({
       </div>
 
       <div className="flex flex-col gap-3 border-t border-sky-100 pt-3 xl:flex-row xl:items-end xl:justify-between">
-        <div className="grid min-w-0 gap-1 xl:max-w-xl xl:flex-1">
+        {/* <div className="grid min-w-0 gap-1 xl:max-w-xl xl:flex-1">
           <Label htmlFor="apiBaseUrl" className="text-xs text-muted-foreground">
             API base
           </Label>
@@ -263,7 +263,7 @@ function FileToolbar({
             value={apiBaseUrl}
             onChange={(event) => onApiBaseUrlChange(event.target.value)}
           />
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)] items-end gap-2 sm:flex sm:flex-nowrap">
           <Button
