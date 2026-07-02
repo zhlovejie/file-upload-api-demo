@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const path = require('path');
 const config = require('./config');
 const uploadRoutes = require('./routes/uploadRoutes');
+const { getFileRecord } = require('./services/fileService');
 const responseMiddleware = require('./middleware/response');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
@@ -54,6 +55,22 @@ app.use('/api/uploads', uploadRoutes);
 // integrated as an independent asset host for existing frontend applications.
 app.use(
   config.storage.publicRoute,
+  async (req, res, next) => {
+    const requestedFileName = path.basename(decodeURIComponent(req.path || ''));
+
+    try {
+      const record = await getFileRecord(requestedFileName);
+
+      if (record.visibility === 'private') {
+        next(new HttpError(403, 'This file is private. Use its private share link instead.'));
+        return;
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  },
   express.static(config.storage.uploadDir, {
     fallthrough: false,
     maxAge: '7d',

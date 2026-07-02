@@ -13,7 +13,7 @@ const {
   sanitizeFileName,
 } = require('../utils/fileHelpers');
 const { validateFileMetadata } = require('../utils/validation');
-const { buildPublicUrl } = require('./fileService');
+const { saveFileRecord } = require('./fileService');
 
 const metadataFileName = 'metadata.json';
 
@@ -298,8 +298,9 @@ async function mergeChunks(uploadId) {
     }
 
     await new Promise((resolve, reject) => {
-      writeStream.end(resolve);
+      writeStream.on('finish', resolve);
       writeStream.on('error', reject);
+      writeStream.end();
     });
 
     const finalStats = await fsp.stat(finalPath);
@@ -319,14 +320,13 @@ async function mergeChunks(uploadId) {
 
     logger.info('Merged chunk upload successfully', { uploadId, storedFileName });
 
-    return {
+    return saveFileRecord({
       uploadId,
       originalName: metadata.originalName,
       storedFileName,
       mimeType: metadata.mimeType,
       size: finalStats.size,
-      publicUrl: buildPublicUrl(storedFileName),
-    };
+    });
   } catch (error) {
     writeStream.destroy();
     throw error;

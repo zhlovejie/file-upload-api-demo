@@ -1,5 +1,17 @@
 const config = require('../config');
-const { saveSingleFile } = require('../services/fileService');
+const {
+  deleteFile,
+  deleteFiles,
+  getFileRecord,
+  listFileHistory,
+  listFiles,
+  rotateShareLink,
+  saveSingleFile,
+  sendFileResponse,
+  sendSharedFile,
+  streamBatchDownload,
+  updateFileAccess,
+} = require('../services/fileService');
 const {
   getUploadStatus,
   initChunkUpload,
@@ -12,6 +24,85 @@ async function uploadSingleFile(req, res) {
   const result = await saveSingleFile(req.file);
 
   res.success(result, 'File uploaded successfully.', 201);
+}
+
+async function listUploadedFiles(req, res) {
+  const result = await listFiles(req.query);
+
+  res.success(result, 'Uploaded files loaded successfully.');
+}
+
+async function getUploadedFile(req, res) {
+  const result = await getFileRecord(req.params.storedFileName);
+
+  res.success(result, 'Uploaded file loaded successfully.');
+}
+
+async function deleteUploadedFile(req, res) {
+  const result = await deleteFile(req.params.storedFileName);
+
+  res.success(result, 'Uploaded file deleted successfully.');
+}
+
+async function deleteUploadedFiles(req, res) {
+  const result = await deleteFiles(req.body.storedFileNames || []);
+
+  res.success(result, 'Uploaded files deleted successfully.');
+}
+
+async function downloadUploadedFiles(req, res) {
+  await streamBatchDownload({
+    storedFileNames: req.body.storedFileNames || [],
+    res,
+  });
+}
+
+async function previewUploadedFile(req, res) {
+  await sendFileResponse({
+    storedFileName: req.params.storedFileName,
+    res,
+  });
+}
+
+async function downloadUploadedFile(req, res) {
+  await sendFileResponse({
+    storedFileName: req.params.storedFileName,
+    res,
+    asAttachment: true,
+  });
+}
+
+async function updateUploadedFileAccess(req, res) {
+  const result = await updateFileAccess(req.params.storedFileName, req.body);
+
+  res.success(result, 'File access updated successfully.');
+}
+
+async function rotateUploadedFileShareLink(req, res) {
+  const result = await rotateShareLink(req.params.storedFileName);
+
+  res.success(result, 'Private share link updated successfully.');
+}
+
+async function listUploadedFileHistory(req, res) {
+  const result = await listFileHistory(req.query);
+
+  res.success(result, 'Upload history loaded successfully.');
+}
+
+async function previewSharedFile(req, res) {
+  await sendSharedFile({
+    token: req.params.token,
+    res,
+  });
+}
+
+async function downloadSharedFile(req, res) {
+  await sendSharedFile({
+    token: req.params.token,
+    res,
+    asAttachment: true,
+  });
 }
 
 async function initLargeFileUpload(req, res) {
@@ -59,10 +150,22 @@ function readUploadConfig(req, res) {
 }
 
 module.exports = {
+  deleteUploadedFiles,
+  deleteUploadedFile,
+  downloadSharedFile,
+  downloadUploadedFile,
+  downloadUploadedFiles,
+  getUploadedFile,
   initLargeFileUpload,
+  listUploadedFileHistory,
+  listUploadedFiles,
   mergeLargeFileChunks,
+  previewSharedFile,
+  previewUploadedFile,
   readLargeFileUploadStatus,
   readUploadConfig,
+  rotateUploadedFileShareLink,
+  updateUploadedFileAccess,
   uploadChunk,
   uploadSingleFile,
 };

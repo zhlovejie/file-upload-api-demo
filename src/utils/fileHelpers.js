@@ -22,8 +22,26 @@ function createUploadId() {
   return `${Date.now()}-${createRandomString(18)}`;
 }
 
+function restoreUtf8FileName(fileName) {
+  const value = String(fileName || 'uploaded-file');
+
+  if (!/[\u0080-\u009f]/.test(value)) {
+    return value;
+  }
+
+  const decodedValue = Buffer.from(value, 'latin1').toString('utf8');
+
+  return decodedValue.includes('\uFFFD') ? value : decodedValue;
+}
+
 function sanitizeFileName(fileName) {
-  return path.basename(fileName || 'uploaded-file').replace(/[^\w.\-() ]/g, '_');
+  const baseName = path.basename(restoreUtf8FileName(fileName));
+  const sanitizedName = baseName
+    .replace(/[\u0000-\u001f\u007f]/g, '')
+    .replace(/[\\/]/g, '')
+    .trim();
+
+  return sanitizedName || 'uploaded-file';
 }
 
 async function ensureDirectory(directoryPath) {
@@ -45,6 +63,7 @@ async function removeDirectorySafe(directoryPath) {
 
 module.exports = {
   createUploadId,
+  createRandomString,
   createUniqueFileName,
   ensureDirectory,
   normalizeExtension,

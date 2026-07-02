@@ -1,0 +1,31 @@
+services:
+  file-upload-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: file-upload-api-demo:latest
+    container_name: file-upload-api-demo
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-4000}:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      PUBLIC_BASE_URL: "${PUBLIC_BASE_URL:-http://localhost:4000}"
+      UPLOAD_DIR: /app/storage/uploads
+      CHUNK_DIR: /app/storage/chunks
+      MAX_SINGLE_FILE_SIZE_BYTES: "${MAX_SINGLE_FILE_SIZE_BYTES:-104857600}"
+      MAX_CHUNK_UPLOAD_FILE_SIZE_BYTES: "${MAX_CHUNK_UPLOAD_FILE_SIZE_BYTES:-5368709120}"
+      MAX_CHUNK_SIZE_BYTES: "${MAX_CHUNK_SIZE_BYTES:-5242880}"
+      DEFAULT_CHUNK_SIZE_BYTES: "${DEFAULT_CHUNK_SIZE_BYTES:-2097152}"
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-*}"
+      CHUNK_EXPIRY_MS: "${CHUNK_EXPIRY_MS:-86400000}"
+      CLEANUP_INTERVAL_MS: "${CLEANUP_INTERVAL_MS:-1800000}"
+      LOG_FORMAT: "${LOG_FORMAT:-combined}"
+    volumes:
+      - upload_data:/app/storage/uploads
+      - chunk_data:/app/storage/chunks
+
+volumes:
+  upload_data:
+  chunk_data:
