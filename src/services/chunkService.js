@@ -162,7 +162,9 @@ async function initChunkUpload(payload) {
     return {
       uploadId: reusableTask.metadata.uploadId,
       uploadedChunks: reusableTask.uploadedChunks,
+      chunkSize: reusableTask.metadata.chunkSize,
       expiresInMs: config.cleanup.chunkExpiryMs,
+      maxChunkSizeBytes: config.upload.maxChunkSizeBytes,
       recommendedChunkSize: config.upload.defaultChunkSizeBytes,
       resumed: true,
     };
@@ -192,7 +194,9 @@ async function initChunkUpload(payload) {
   return {
     uploadId,
     uploadedChunks: [],
+    chunkSize,
     expiresInMs: config.cleanup.chunkExpiryMs,
+    maxChunkSizeBytes: config.upload.maxChunkSizeBytes,
     recommendedChunkSize: config.upload.defaultChunkSizeBytes,
   };
 }

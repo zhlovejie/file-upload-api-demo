@@ -95,6 +95,13 @@ function createChunkTask({ apiBaseUrl, payload }) {
   });
 }
 
+function readUploadConfig({ apiBaseUrl }) {
+  return requestJson({
+    method: "GET",
+    url: `${getApiBaseUrl(apiBaseUrl)}/api/uploads/config`,
+  });
+}
+
 function readChunkStatus({ apiBaseUrl, uploadId }) {
   return requestJson({
     method: "GET",
@@ -218,6 +225,7 @@ export {
   listUploadHistory,
   listUploadedFiles,
   mergeChunks,
+  readUploadConfig,
   readChunkStatus,
   rotateUploadedFileShareLink,
   updateUploadedFileAccess,

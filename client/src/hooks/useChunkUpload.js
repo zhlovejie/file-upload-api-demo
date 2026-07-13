@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import {
   createChunkTask,
   readChunkStatus,
+  readUploadConfig,
   mergeChunks,
   uploadChunkPart,
 } from "../services/uploadApi.js";
@@ -17,6 +18,7 @@ import { formatFileSize } from "../utils/file.js";
 const chunkRetryLimit = 3;
 const chunkRetryDelayMs = 600;
 const concurrency = 4;
+const fallbackChunkSizeBytes = 1024 * 1024;
 
 function wait(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -28,6 +30,21 @@ function createChunkIndexes(totalChunks, uploadedChunks) {
   return Array.from({ length: totalChunks }, (_, index) => index).filter(
     (index) => !uploaded.has(index),
   );
+}
+
+function resolveChunkSize(uploadConfig) {
+  const defaultChunkSize = Number(uploadConfig?.defaultChunkSizeBytes);
+  const maxChunkSize = Number(uploadConfig?.maxChunkSizeBytes);
+  const configuredChunkSize =
+    Number.isFinite(defaultChunkSize) && defaultChunkSize > 0
+      ? defaultChunkSize
+      : fallbackChunkSizeBytes;
+
+  if (Number.isFinite(maxChunkSize) && maxChunkSize > 0) {
+    return Math.min(configuredChunkSize, maxChunkSize);
+  }
+
+  return configuredChunkSize;
 }
 
 function useChunkUpload({ apiBaseUrl, onUploaded, toast }) {
@@ -81,26 +98,31 @@ function useChunkUpload({ apiBaseUrl, onUploaded, toast }) {
   }
 
   async function createOrResumeChunkTask() {
-    const chunkSize = 2 * 1024 * 1024;
+    const uploadConfig = await readUploadConfig({ apiBaseUrl });
+    const chunkSize = resolveChunkSize(uploadConfig);
     const totalChunks = Math.ceil(file.size / chunkSize);
     const mimeType = file.type || "application/octet-stream";
     const fileKey = getFileTaskKey(file);
     const storedTask = getStoredChunkTask(file, tasks);
 
     if (storedTask) {
-      try {
-        const remoteStatus = await readChunkStatus({
-          apiBaseUrl,
-          uploadId: storedTask.uploadId,
-        });
-        return syncTask({
-          ...storedTask,
-          fileKey,
-          uploadedChunks: remoteStatus.uploadedChunks,
-          totalChunks: remoteStatus.totalChunks,
-        });
-      } catch (error) {
+      if (Number(storedTask.chunkSize) !== chunkSize) {
         removeTask(storedTask);
+      } else {
+        try {
+          const remoteStatus = await readChunkStatus({
+            apiBaseUrl,
+            uploadId: storedTask.uploadId,
+          });
+          return syncTask({
+            ...storedTask,
+            fileKey,
+            uploadedChunks: remoteStatus.uploadedChunks,
+            totalChunks: remoteStatus.totalChunks,
+          });
+        } catch (error) {
+          removeTask(storedTask);
+        }
       }
     }
 
@@ -121,8 +143,8 @@ function useChunkUpload({ apiBaseUrl, onUploaded, toast }) {
       fileName: file.name,
       fileSize: file.size,
       mimeType,
-      chunkSize,
-      totalChunks,
+      chunkSize: nextTask.chunkSize || chunkSize,
+      totalChunks: Math.ceil(file.size / (nextTask.chunkSize || chunkSize)),
       uploadedChunks: nextTask.uploadedChunks,
     });
   }
