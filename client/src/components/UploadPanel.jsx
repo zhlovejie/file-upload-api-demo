@@ -4,12 +4,15 @@ import { UploadResult } from "./UploadResult.jsx";
 import { Button } from "./ui/button.jsx";
 
 function UploadPanel({
+  accept,
   title,
   dropIcon,
   dropTitle,
   dropNote,
   fileInputLabel,
+  limitSummary = [],
   selectedFile,
+  validationError,
   progress,
   status,
   isUploading,
@@ -31,8 +34,28 @@ function UploadPanel({
           note={dropNote}
           inputLabel={fileInputLabel}
           inputKey={selectedFile}
+          accept={accept}
+          isInvalid={Boolean(validationError)}
           onFileSelected={onFileSelected}
         />
+        {limitSummary.length > 0 ? (
+          <dl className="grid gap-2 rounded-md border border-sky-100 bg-sky-50/60 px-3 py-2 text-sm sm:grid-cols-2">
+            {limitSummary.map((item) => (
+              <div key={item.label} className="min-w-0">
+                <dt className="font-medium text-slate-700">{item.label}</dt>
+                <dd className="mt-0.5 break-words text-muted-foreground">{item.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
+        {validationError ? (
+          <div
+            className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+            role="alert"
+          >
+            {validationError}
+          </div>
+        ) : null}
         <div className="min-h-6 truncate text-sm text-muted-foreground" title={selectedFile}>
           {selectedFile}
         </div>

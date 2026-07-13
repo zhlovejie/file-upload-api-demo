@@ -6,9 +6,20 @@ import { cn } from "../../lib/utils.js";
 const selectScrollLockClassName = "select-scroll-lock-active";
 let openSelectCount = 0;
 
+const useIsomorphicLayoutEffect =
+  typeof window === "undefined" ? React.useEffect : React.useLayoutEffect;
+
 function useSelectScrollLock(isOpen) {
-  React.useEffect(() => {
-    if (!isOpen || typeof document === "undefined") {
+  useIsomorphicLayoutEffect(() => {
+    if (typeof document === "undefined") {
+      return undefined;
+    }
+
+    if (!isOpen) {
+      if (openSelectCount === 0) {
+        document.body.classList.remove(selectScrollLockClassName);
+      }
+
       return undefined;
     }
 
@@ -33,6 +44,10 @@ function Select({ defaultOpen, onOpenChange, open, ...props }) {
   useSelectScrollLock(isOpen);
 
   function handleOpenChange(nextOpen) {
+    if (!isControlled && nextOpen && typeof document !== "undefined") {
+      document.body.classList.add(selectScrollLockClassName);
+    }
+
     if (!isControlled) {
       setUncontrolledOpen(nextOpen);
     }

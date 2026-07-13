@@ -2,11 +2,13 @@ import { useRef, useState } from "react";
 import { cn } from "../lib/utils.js";
 
 function DropZone({
+  accept,
   icon,
   title,
   note,
   inputLabel,
   inputKey,
+  isInvalid,
   onFileSelected,
 }) {
   const inputRef = useRef(null);
@@ -20,6 +22,7 @@ function DropZone({
 
   function handleChange(event) {
     onFileSelected(event.target.files[0] || null);
+    event.target.value = "";
   }
 
   return (
@@ -27,6 +30,7 @@ function DropZone({
       className={cn(
         "relative grid min-h-40 cursor-pointer place-items-center overflow-hidden rounded-md border-2 border-dashed border-sky-300 bg-[linear-gradient(135deg,rgba(239,248,255,0.96),rgba(224,242,254,0.78))] transition-[border-color,background-color,box-shadow] hover:border-cyan-400 hover:bg-accent/70 hover:shadow-[0_12px_28px_rgba(14,116,144,0.12)]",
         isActive && "border-cyan-400 bg-cyan-50 shadow-[0_0_0_4px_rgba(34,211,238,0.16)]",
+        isInvalid && "border-red-300 bg-red-50/70 hover:border-red-400 hover:bg-red-50",
       )}
       onDragEnter={(event) => {
         event.preventDefault();
@@ -47,6 +51,7 @@ function DropZone({
         key={inputKey}
         ref={inputRef}
         type="file"
+        accept={accept}
         aria-label={inputLabel}
         className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
         onChange={handleChange}

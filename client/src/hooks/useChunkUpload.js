@@ -14,6 +14,7 @@ import {
   saveStoredChunkTask,
 } from "../utils/chunkTaskStorage.js";
 import { formatFileSize } from "../utils/file.js";
+import { getMaxBytes, validateUploadFile } from "../utils/uploadLimits.js";
 
 const chunkRetryLimit = 3;
 const chunkRetryDelayMs = 600;
@@ -47,7 +48,7 @@ function resolveChunkSize(uploadConfig) {
   return configuredChunkSize;
 }
 
-function useChunkUpload({ apiBaseUrl, onUploaded, toast }) {
+function useChunkUpload({ apiBaseUrl, onUploaded, toast, uploadConfig }) {
   const [file, setFile] = useState(null);
   const [task, setTask] = useState(null);
   const [tasks, setTasks] = useState(() => readStoredChunkTasks());
@@ -59,7 +60,13 @@ function useChunkUpload({ apiBaseUrl, onUploaded, toast }) {
       : "Ready";
   });
   const [result, setResult] = useState(null);
+  const [validationError, setValidationError] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const maxSizeBytes = getMaxBytes(
+    uploadConfig,
+    "maxChunkUploadFileSizeBytes",
+    20 * 1024 * 1024,
+  );
 
   const selectedFileText = useMemo(
     () => (file ? `${file.name} - ${formatFileSize(file.size)}` : "No file selected."),
@@ -80,12 +87,31 @@ function useChunkUpload({ apiBaseUrl, onUploaded, toast }) {
   }
 
   function selectFile(nextFile) {
+    const nextValidationError = validateUploadFile({
+      file: nextFile,
+      uploadConfig,
+      maxSizeBytes,
+      uploadKind: "Chunk upload",
+    });
+
+    if (nextValidationError) {
+      setFile(null);
+      setTask(null);
+      setResult(null);
+      setProgress(0);
+      setStatus("File rejected");
+      setValidationError(nextValidationError);
+      toast(nextValidationError);
+      return;
+    }
+
     const storedTask = nextFile ? getStoredChunkTask(nextFile, tasks) : null;
 
     setFile(nextFile);
     setTask(storedTask);
     setResult(null);
     setProgress(0);
+    setValidationError("");
     setStatus(storedTask ? "Ready to resume" : nextFile ? "Ready to upload" : "Ready");
   }
 
@@ -94,6 +120,7 @@ function useChunkUpload({ apiBaseUrl, onUploaded, toast }) {
     setResult(null);
     setProgress(0);
     setStatus("Ready");
+    setValidationError("");
     removeTask();
   }
 
@@ -198,7 +225,24 @@ function useChunkUpload({ apiBaseUrl, onUploaded, toast }) {
 
   async function upload() {
     if (!file) {
-      toast("Please select a large file before uploading.");
+      const message = validationError || "Please select a supported file before uploading.";
+      setValidationError(message);
+      toast(message);
+      return;
+    }
+
+    const nextValidationError = validateUploadFile({
+      file,
+      uploadConfig,
+      maxSizeBytes,
+      uploadKind: "Chunk upload",
+    });
+
+    if (nextValidationError) {
+      setProgress(0);
+      setStatus("File rejected");
+      setValidationError(nextValidationError);
+      toast(nextValidationError);
       return;
     }
 
@@ -284,6 +328,7 @@ function useChunkUpload({ apiBaseUrl, onUploaded, toast }) {
     progress,
     status,
     result,
+    validationError,
     isUploading,
     selectFile,
     reset,

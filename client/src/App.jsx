@@ -14,6 +14,7 @@ import { useChunkUpload } from "./hooks/useChunkUpload.js";
 import { useSingleUpload } from "./hooks/useSingleUpload.js";
 import { useToast } from "./hooks/useToast.js";
 import { useUploadedFiles } from "./hooks/useUploadedFiles.js";
+import { readUploadConfig } from "./services/uploadApi.js";
 import { formatFileSize } from "./utils/file.js";
 
 const columnStorageKey = "file-upload-demo.visible-columns";
@@ -54,6 +55,7 @@ function loadColumns() {
 
 function App() {
   const [apiBaseUrl, setApiBaseUrl] = useState(defaultApiBaseUrl);
+  const [uploadConfig, setUploadConfig] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState(() => new Set());
   const [columns, setColumns] = useState(loadColumns);
@@ -64,6 +66,7 @@ function App() {
   const uploadedFiles = useUploadedFiles({ apiBaseUrl, toast: toast.show });
   const singleUpload = useSingleUpload({
     apiBaseUrl,
+    uploadConfig,
     onUploaded: async () => {
       await uploadedFiles.refresh();
       await uploadedFiles.refreshHistory();
@@ -72,6 +75,7 @@ function App() {
   });
   const chunkUpload = useChunkUpload({
     apiBaseUrl,
+    uploadConfig,
     onUploaded: async () => {
       await uploadedFiles.refresh();
       await uploadedFiles.refreshHistory();
@@ -88,6 +92,27 @@ function App() {
     () => uploadedFiles.items.reduce((sum, file) => sum + Number(file.size || 0), 0),
     [uploadedFiles.items],
   );
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    readUploadConfig({ apiBaseUrl })
+      .then((config) => {
+        if (isCurrent) {
+          setUploadConfig(config);
+        }
+      })
+      .catch((error) => {
+        if (isCurrent) {
+          setUploadConfig(null);
+          toast.show(`Upload limits could not be loaded: ${error.message}`);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [apiBaseUrl, toast.show]);
 
   useEffect(() => {
     setSelectedIds(new Set());
@@ -311,6 +336,7 @@ function App() {
         chunkUpload={chunkUpload}
         isOpen={isUploadOpen}
         singleUpload={singleUpload}
+        uploadConfig={uploadConfig}
         onClose={() => setIsUploadOpen(false)}
       />
 

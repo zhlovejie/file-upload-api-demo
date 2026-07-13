@@ -6,14 +6,27 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog.jsx";
+import {
+  buildLimitSummary,
+  getAcceptValue,
+  getMaxBytes,
+} from "../utils/uploadLimits.js";
 
 function UploadDialog({
   chunkUpload,
   isOpen,
   onClose,
   singleUpload,
+  uploadConfig,
 }) {
   const isBusy = singleUpload.isUploading || chunkUpload.isUploading;
+  const accept = getAcceptValue(uploadConfig);
+  const singleMaxSizeBytes = getMaxBytes(uploadConfig, "maxSingleFileSizeBytes", 4 * 1024 * 1024);
+  const chunkMaxSizeBytes = getMaxBytes(
+    uploadConfig,
+    "maxChunkUploadFileSizeBytes",
+    20 * 1024 * 1024,
+  );
 
   return (
     <Dialog
@@ -40,6 +53,13 @@ function UploadDialog({
             dropNote="Images, videos and documents are supported."
             fileInputLabel="Choose file for normal upload"
             selectedFile={singleUpload.selectedFileText}
+            accept={accept}
+            limitSummary={buildLimitSummary({
+              uploadConfig,
+              maxSizeBytes: singleMaxSizeBytes,
+              mode: "single",
+            })}
+            validationError={singleUpload.validationError}
             progress={singleUpload.progress}
             status={singleUpload.status}
             isUploading={singleUpload.isUploading}
@@ -63,6 +83,13 @@ function UploadDialog({
             dropNote="Chunks are uploaded in parallel with resume status."
             fileInputLabel="Choose file for chunk upload"
             selectedFile={chunkUpload.selectedFileText}
+            accept={accept}
+            limitSummary={buildLimitSummary({
+              uploadConfig,
+              maxSizeBytes: chunkMaxSizeBytes,
+              mode: "chunk",
+            })}
+            validationError={chunkUpload.validationError}
             progress={chunkUpload.progress}
             status={chunkUpload.status}
             isUploading={chunkUpload.isUploading}

@@ -35,6 +35,7 @@
   html {
     min-height: 100%;
     background: #eaf5ff;
+    scrollbar-gutter: stable;
   }
 
   body {
