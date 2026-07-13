@@ -233,6 +233,40 @@ The included React UI provides:
 - Preview, copy link, download, delete, batch delete, and batch ZIP download.
 - Upload history side panel.
 
+## Screenshots
+
+The `screenshot/` directory contains the current project captures for the built-in `BlockArchive` demo UI.
+
+### File Manager Dashboard
+
+![Uploaded files table and upload history](screenshot/1.png)
+
+The main dashboard shows uploaded files, summary badges, keyword search, file type and access filters, sortable columns, per-file actions, pagination, and the upload history panel.
+
+### Advanced Search and Batch Actions
+
+![Advanced search and selected batch actions](screenshot/2.png)
+
+Advanced search adds upload date and file size filters. Selecting rows reveals batch ZIP download and batch delete actions for bulk file management.
+
+### Upload Dialog and Chunk Progress
+
+![Upload dialog with large file chunk upload progress](screenshot/3.png)
+
+The upload dialog supports both normal single-file upload and large-file chunk upload. The chunk upload flow shows progress, upload status, and resume controls.
+
+### Completed Chunk Upload
+
+![Completed large file chunk upload](screenshot/4.png)
+
+After all chunks are uploaded and merged, the UI displays a completed status with the generated static file URL and the final uploaded file metadata.
+
+### File Preview Drawer
+
+![Image preview drawer with actions](screenshot/5.png)
+
+The preview drawer lets users inspect supported files inline, switch between preview/details/history tabs, download the file, copy or open the link, and delete the file.
+
 ## API Response Format
 
 Successful JSON responses use:
