@@ -14,6 +14,8 @@ const { ensureDirectory } = require('./utils/fileHelpers');
 const { startChunkCleanupJob } = require('./jobs/cleanupChunks');
 
 const app = express();
+let runtimeReadyPromise = null;
+let cleanupJobStarted = false;
 
 function createCorsOptions() {
   const allowsEveryOrigin = config.cors.allowedOrigins.includes('*');
@@ -99,13 +101,26 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
-async function bootstrap() {
+async function initializeRuntime({ startCleanupJob = !config.app.isVercel } = {}) {
   // In a production client system these folders can be replaced by mounted
   // volumes, AWS S3, Cloudflare R2, Azure Blob Storage or another object store.
-  await ensureDirectory(config.storage.uploadDir);
-  await ensureDirectory(config.storage.chunkDir);
+  if (!runtimeReadyPromise) {
+    runtimeReadyPromise = Promise.all([
+      ensureDirectory(config.storage.uploadDir),
+      ensureDirectory(config.storage.chunkDir),
+    ]);
+  }
 
-  startChunkCleanupJob();
+  await runtimeReadyPromise;
+
+  if (startCleanupJob && !cleanupJobStarted) {
+    startChunkCleanupJob();
+    cleanupJobStarted = true;
+  }
+}
+
+async function bootstrap() {
+  await initializeRuntime();
 
   app.listen(config.app.port, () => {
     logger.info('File upload API demo is running', {
@@ -117,9 +132,12 @@ async function bootstrap() {
   });
 }
 
-bootstrap().catch((error) => {
-  logger.error('Application failed to start', { message: error.message, stack: error.stack });
-  process.exit(1);
-});
+if (require.main === module) {
+  bootstrap().catch((error) => {
+    logger.error('Application failed to start', { message: error.message, stack: error.stack });
+    process.exit(1);
+  });
+}
 
 module.exports = app;
+module.exports.initializeRuntime = initializeRuntime;

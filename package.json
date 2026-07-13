@@ -4,6 +4,9 @@
   "description": "Standalone file upload API demo with single file upload, large file chunk upload, resume support, static asset hosting, and cleanup jobs.",
   "main": "src/app.js",
   "type": "commonjs",
+  "engines": {
+    "node": ">=22.12.0 <25"
+  },
   "scripts": {
     "build": "npm run client:build",
     "client:build": "vite build --config client/vite.config.js",
