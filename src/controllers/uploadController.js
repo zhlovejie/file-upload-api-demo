@@ -20,20 +20,35 @@ const {
 } = require('../services/chunkService');
 const { toPositiveInteger } = require('../utils/validation');
 
+function getRequestPublicBaseUrl(req) {
+  const forwardedHost = String(req.headers['x-forwarded-host'] || '').split(',')[0].trim();
+  const host = forwardedHost || req.get('host');
+  const forwardedProto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
+  const protocol = forwardedProto || req.protocol || 'http';
+
+  return host ? `${protocol}://${host}` : config.app.publicBaseUrl;
+}
+
+function getRequestOptions(req) {
+  return {
+    publicBaseUrl: getRequestPublicBaseUrl(req),
+  };
+}
+
 async function uploadSingleFile(req, res) {
-  const result = await saveSingleFile(req.file);
+  const result = await saveSingleFile(req.file, getRequestOptions(req));
 
   res.success(result, 'File uploaded successfully.', 201);
 }
 
 async function listUploadedFiles(req, res) {
-  const result = await listFiles(req.query);
+  const result = await listFiles(req.query, getRequestOptions(req));
 
   res.success(result, 'Uploaded files loaded successfully.');
 }
 
 async function getUploadedFile(req, res) {
-  const result = await getFileRecord(req.params.storedFileName);
+  const result = await getFileRecord(req.params.storedFileName, getRequestOptions(req));
 
   res.success(result, 'Uploaded file loaded successfully.');
 }
@@ -73,13 +88,13 @@ async function downloadUploadedFile(req, res) {
 }
 
 async function updateUploadedFileAccess(req, res) {
-  const result = await updateFileAccess(req.params.storedFileName, req.body);
+  const result = await updateFileAccess(req.params.storedFileName, req.body, getRequestOptions(req));
 
   res.success(result, 'File access updated successfully.');
 }
 
 async function rotateUploadedFileShareLink(req, res) {
-  const result = await rotateShareLink(req.params.storedFileName);
+  const result = await rotateShareLink(req.params.storedFileName, getRequestOptions(req));
 
   res.success(result, 'Private share link updated successfully.');
 }
@@ -129,7 +144,7 @@ async function readLargeFileUploadStatus(req, res) {
 }
 
 async function mergeLargeFileChunks(req, res) {
-  const result = await mergeChunks(req.params.uploadId);
+  const result = await mergeChunks(req.params.uploadId, getRequestOptions(req));
 
   res.success(result, 'Chunks merged successfully.');
 }
@@ -143,7 +158,7 @@ function readUploadConfig(req, res) {
       defaultChunkSizeBytes: config.upload.defaultChunkSizeBytes,
       allowedExtensions: config.upload.allowedExtensions,
       allowedMimeTypes: config.upload.allowedMimeTypes,
-      publicBaseUrl: config.app.publicBaseUrl,
+      publicBaseUrl: getRequestPublicBaseUrl(req),
     },
     'Upload configuration loaded successfully.',
   );

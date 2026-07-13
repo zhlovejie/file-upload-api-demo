@@ -68,6 +68,11 @@ app.use(
         return;
       }
 
+      if (record.blobUrl) {
+        res.redirect(302, record.blobUrl);
+        return;
+      }
+
       next();
     } catch (error) {
       next(error);

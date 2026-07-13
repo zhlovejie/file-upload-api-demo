@@ -17,9 +17,13 @@ const config = {
     isVercel,
   },
   storage: {
+    driver:
+      process.env.STORAGE_DRIVER ||
+      (process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID ? 'vercel-blob' : 'local'),
     uploadDir: process.env.UPLOAD_DIR || path.join(isVercel ? '/tmp' : rootDir, 'storage', 'uploads'),
     chunkDir: process.env.CHUNK_DIR || path.join(isVercel ? '/tmp' : rootDir, 'storage', 'chunks'),
     publicRoute: '/static',
+    blobPrefix: process.env.BLOB_PREFIX || 'file-upload-api-demo',
   },
   upload: {
     maxSingleFileSizeBytes: resolveNumber(
