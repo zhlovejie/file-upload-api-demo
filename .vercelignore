@@ -1,0 +1,7 @@
+node_modules/
+.env
+.env.*
+storage/uploads/*
+storage/chunks/*
+*.log
+npm-debug.log*

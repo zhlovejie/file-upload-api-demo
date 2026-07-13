@@ -1,7 +1,6 @@
 const fs = require('fs/promises');
 const fsSync = require('fs');
 const path = require('path');
-const archiver = require('archiver');
 const config = require('../config');
 const HttpError = require('../utils/httpError');
 const {
@@ -15,6 +14,11 @@ const {
 
 const fileIndexName = '.file-index.json';
 const fileHistoryName = '.file-history.json';
+
+async function loadZipArchive() {
+  const archiver = await import('archiver');
+  return archiver.ZipArchive;
+}
 
 function buildPublicUrl(fileName) {
   return `${config.app.publicBaseUrl}${config.storage.publicRoute}/${encodeURIComponent(fileName)}`;
@@ -531,7 +535,8 @@ async function streamBatchDownload({ storedFileNames = [], res }) {
     throw new HttpError(404, 'No downloadable files were found.');
   }
 
-  const archive = new archiver.ZipArchive({ zlib: { level: 9 } });
+  const ZipArchive = await loadZipArchive();
+  const archive = new ZipArchive({ zlib: { level: 9 } });
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
   res.attachment(`uploaded-files-${timestamp}.zip`);

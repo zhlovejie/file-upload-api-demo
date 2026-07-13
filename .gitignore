@@ -5,3 +5,5 @@ storage/chunks/*
 !storage/chunks/.gitkeep
 .env
 npm-debug.log*
+
+.vercel
