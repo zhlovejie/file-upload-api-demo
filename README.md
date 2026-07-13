@@ -1,5 +1,7 @@
 # file-upload-api-demo
 
+> 📹 **[Live demo](https://file-upload-api-demo.vercel.app/)** *(https://file-upload-api-demo.vercel.app/)*
+
 Standalone file upload service demo built with Node.js, Express, and a Vite React frontend. It is designed as a reusable upload module for existing web applications: the backend can run as an independent asset service, while the included UI demonstrates upload, file management, preview, sharing, and batch operations.
 
 ## What It Does
